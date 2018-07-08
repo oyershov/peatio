@@ -173,6 +173,18 @@ ActiveRecord::Schema.define(version: 20180720165705) do
   add_index "trades", ["bid_id"], name: "index_trades_on_bid_id", using: :btree
   add_index "trades", ["market_id", "created_at"], name: "index_trades_on_market_id_and_created_at", using: :btree
 
+  create_table "wallets", force: :cascade do |t|
+    t.string   "name",       limit: 64
+    t.string   "currency",   limit: 5
+    t.string   "address",    limit: 255
+    t.string   "type",       limit: 32
+    t.integer  "nsig",       limit: 4
+    t.integer  "parent",     limit: 4
+    t.string   "status",     limit: 32
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
   create_table "withdraws", force: :cascade do |t|
     t.integer  "account_id",   limit: 4,                             null: false
     t.integer  "member_id",    limit: 4,                             null: false
