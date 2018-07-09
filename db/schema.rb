@@ -41,13 +41,13 @@ ActiveRecord::Schema.define(version: 20180720165705) do
 
   create_table "blockchains", force: :cascade do |t|
     t.string   "key",                  limit: 255, null: false
-    t.string   "status",               limit: 255
     t.string   "name",                 limit: 255
     t.string   "client",               limit: 255
     t.string   "server",               limit: 255
     t.integer  "height",               limit: 4
     t.string   "explorer_address",     limit: 255
     t.string   "explorer_transaction", limit: 255
+    t.string   "status",               limit: 255
     t.datetime "created_at",                       null: false
     t.datetime "updated_at",                       null: false
   end
@@ -56,6 +56,7 @@ ActiveRecord::Schema.define(version: 20180720165705) do
   add_index "blockchains", ["status"], name: "index_blockchains_on_status", using: :btree
 
   create_table "currencies", force: :cascade do |t|
+    t.string   "blockchain_key",       limit: 32
     t.string   "symbol",               limit: 1,                                               null: false
     t.string   "type",                 limit: 30,                             default: "coin", null: false
     t.decimal  "deposit_fee",                       precision: 32, scale: 16, default: 0.0,    null: false
@@ -68,7 +69,6 @@ ActiveRecord::Schema.define(version: 20180720165705) do
     t.string   "icon_url",             limit: 255
     t.datetime "created_at",                                                                   null: false
     t.datetime "updated_at",                                                                   null: false
-    t.string   "blockchain_key",       limit: 32
   end
 
   add_index "currencies", ["enabled"], name: "index_currencies_on_enabled", using: :btree
@@ -191,8 +191,8 @@ ActiveRecord::Schema.define(version: 20180720165705) do
   add_index "trades", ["market_id", "created_at"], name: "index_trades_on_market_id_and_created_at", using: :btree
 
   create_table "wallets", force: :cascade do |t|
-    t.string   "name",        limit: 64
     t.string   "currency_id", limit: 5
+    t.string   "name",        limit: 64
     t.string   "address",     limit: 255
     t.string   "kind",        limit: 32
     t.integer  "nsig",        limit: 4
