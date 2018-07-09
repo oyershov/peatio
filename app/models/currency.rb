@@ -4,6 +4,7 @@
 class Currency < ActiveRecord::Base
   serialize :options, JSON
 
+  belongs_to :blockchain, foreign_key: :blockchain_key, primary_key: :key
   # NOTE: type column reserved for STI
   self.inheritance_column = nil
 
@@ -203,6 +204,7 @@ end
 #  icon_url             :string(255)
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
+#  blockchain_key       :string(32)
 #
 # Indexes
 #
