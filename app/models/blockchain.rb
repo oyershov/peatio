@@ -16,14 +16,6 @@ class Blockchain < ActiveRecord::Base
   def status
     super&.inquiry
   end
-
-  def case_insensitive?
-    !case_sensitive?
-  end
-
-  def confirmations_max
-    [deposit_confirmations, withdraw_confirmations].max
-  end
 end
 
 # == Schema Information
