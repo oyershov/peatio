@@ -1,7 +1,7 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-describe BlockchainService do
+describe BlockchainService::Ethereum do
 
   around do |example|
     WebMock.disable_net_connect!
@@ -9,7 +9,7 @@ describe BlockchainService do
     WebMock.allow_net_connect!
   end
 
-  describe 'BlockAPI::Ethereum' do
+  describe 'Client::Ethereum' do
     let(:block_data) do
       Rails.root.join('spec', 'resources', block_file_name)
         .yield_self { |file_path| File.open(file_path) }
@@ -24,7 +24,7 @@ describe BlockchainService do
         .tap { |b| b.update(height: start_block)}
     end
 
-    let(:client) { BlockAPI[blockchain.key] }
+    let(:client) { Client[blockchain.key] }
 
     def request_body(block_number, index)
       { jsonrpc: '2.0',
@@ -64,7 +64,7 @@ describe BlockchainService do
             .to_return(body: blk.to_json)
         end
         # Process blockchain data.
-        BlockchainService.new(blockchain).process_blockchain
+        BlockchainService[blockchain.key].process_blockchain
       end
 
       subject { Deposits::Coin.where(currency: currency) }
@@ -86,7 +86,7 @@ describe BlockchainService do
 
         it 'doesn\'t change deposit' do
           expect(blockchain.height).to eq start_block
-          expect{ BlockchainService.new(blockchain).process_blockchain}.not_to change{subject}
+          expect{ BlockchainService[blockchain.key].process_blockchain}.not_to change{subject}
         end
       end
     end
@@ -122,11 +122,11 @@ describe BlockchainService do
         client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
         block_data.each_with_index do |blk, index|
           stub_request(:post, client.endpoint)
-              .with(body: request_body(blk['result']['number'],index))
-              .to_return(body: blk.to_json)
+            .with(body: request_body(blk['result']['number'],index))
+            .to_return(body: blk.to_json)
         end
         # Process blockchain data.
-        BlockchainService.new(blockchain).process_blockchain
+        BlockchainService[blockchain.key].process_blockchain
       end
 
       subject { Deposits::Coin.where(currency: currency) }
@@ -148,7 +148,7 @@ describe BlockchainService do
 
         it 'doesn\'t change deposit' do
           expect(blockchain.height).to eq start_block
-          expect{ BlockchainService.new(blockchain).process_blockchain}.not_to change{subject}
+          expect{ BlockchainService[blockchain.key].process_blockchain}.not_to change{subject}
         end
       end
     end
