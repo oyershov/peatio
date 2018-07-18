@@ -11,7 +11,7 @@ describe BlockchainService::Ethereum do
 
   describe 'Client::Ethereum' do
     let(:block_data) do
-      Rails.root.join('spec', 'resources', block_file_name)
+      Rails.root.join('spec', 'resources', 'ethereum-data', block_file_name)
         .yield_self { |file_path| File.open(file_path) }
         .yield_self { |file| JSON.load(file) }
     end
@@ -21,7 +21,7 @@ describe BlockchainService::Ethereum do
 
     let(:blockchain) do
       Blockchain.find_by_key('eth-rinkeby')
-        .tap { |b| b.update(height: start_block)}
+        .tap { |b| b.update(height: start_block) }
     end
 
     let(:client) { Client[blockchain.key] }
@@ -36,7 +36,7 @@ describe BlockchainService::Ethereum do
 
     context 'single ETH deposit was created during blockchain proccessing' do
       # File with real json rpc data for bunch of blocks.
-      let(:block_file_name) { 'ethereum-data.json' }
+      let(:block_file_name) { '2621839-2621843.json' }
 
       # Use rinkeby.etherscan.io to fetch transactions data.
       let(:expected_deposits) do
@@ -91,9 +91,9 @@ describe BlockchainService::Ethereum do
       end
     end
 
-    context 'two TRST deposits was created during blockchain proccessing' do
+    context 'two TRST deposits were created during blockchain proccessing' do
       # File with real json rpc data for bunch of blocks.
-      let(:block_file_name) { 'ethereum-data.json' }
+      let(:block_file_name) { '2621839-2621843.json' }
 
       # Use rinkeby.etherscan.io to fetch transactions data.
       let(:expected_deposits) do
@@ -122,10 +122,9 @@ describe BlockchainService::Ethereum do
         client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
         block_data.each_with_index do |blk, index|
           stub_request(:post, client.endpoint)
-            .with(body: request_body(blk['result']['number'],index))
+            .with(body: request_body(blk['result']['number'], index))
             .to_return(body: blk.to_json)
         end
-        # Process blockchain data.
         BlockchainService[blockchain.key].process_blockchain
       end
 
@@ -152,5 +151,87 @@ describe BlockchainService::Ethereum do
         end
       end
     end
+
+    context 'three ETH withdrawals were processed' do
+      # File with real json rpc data for bunch of blocks.
+      let(:block_file_name) { '2621895-2621903.json' }
+
+      # Use rinkeby.etherscan.io to fetch transactions data.
+      let(:expected_withdrawals) do
+        [
+          {
+            sum:  '0x14d1120d7b160000'.hex.to_d / currency.base_factor,
+            rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
+            txid: '0x643ff4da78faca97454766d9c2a1d455c19083591c87013740acc60286d6dd80'
+          },
+          {
+            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor,
+            rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
+            txid: '0x5d7f014e7f64c1a8010e64e1f6b6d52efa9c78bb113615bf97d60f30c9cd290b'
+          },
+          {
+            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor,
+            rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
+            txid: '0x66516a32e90c22a8104b3a3ec2d533efdfcfc004166aa05b555237a4aded99ad'
+          }
+        ]
+      end
+
+      let(:member) { create(:member, :level_3, :barong) }
+      let!(:eth_account) { member.get_account(:eth).tap { |a| a.update!(locked: 10, balance: 50) } }
+
+      let!(:withdrawals) do
+        expected_withdrawals.each_with_object([]) do |withdrawal_hash, withdrawals|
+          withdrawal_hash.merge!\
+            member: member,
+            account: eth_account,
+            aasm_state: :confirming,
+            currency: currency
+          withdrawals << create(:eth_withdraw, withdrawal_hash)
+        end
+      end
+
+      let(:currency) { Currency.find_by_id(:eth) }
+
+      let!(:wallet) do
+        create(:wallet, :eth_hot, address: '0x52cdba517843388838b9ba1b57fde23f493a17a1')
+      end
+
+      before do
+        # Mock requests and methods.
+        client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
+        block_data.each_with_index do |blk, index|
+          stub_request(:post, client.endpoint)
+            .with(body: request_body(blk['result']['number'], index))
+            .to_return(body: blk.to_json)
+        end
+        BlockchainService[blockchain.key].process_blockchain
+      end
+
+      subject { Withdraws::Coin.where(currency: currency) }
+
+      it 'doesn\'t create new withdrawals' do
+        expect(subject.count).to eq expected_withdrawals.count
+      end
+
+      it 'changes withdraw confirmations amount' do
+        subject.each do |withdrawal|
+          expect(withdrawal.confirmations).to_not eq 0
+          if withdrawal.confirmations >= blockchain.min_confirmations
+            expect(withdrawal.aasm_state).to eq 'succeed'
+          end
+        end
+      end
+
+      it 'changes withdraw state if it has enough confirmations' do
+        subject.each do |withdrawal|
+          expect(withdrawal.confirmations).to_not eq 0
+          if withdrawal.confirmations >= blockchain.min_confirmations
+            expect(withdrawal.aasm_state).to eq 'succeed'
+          end
+        end
+      end
+    end
+
   end
 end

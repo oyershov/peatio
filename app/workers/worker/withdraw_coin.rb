@@ -52,6 +52,7 @@ module Worker
         Rails.logger.warn { "Updating withdraw state in database." }
 
         withdraw.txid = txid
+        withdraw.dispatch
         withdraw.success
         withdraw.save!
 

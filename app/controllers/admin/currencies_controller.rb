@@ -55,7 +55,7 @@ module Admin
         :quick_withdraw_limit,
         :withdraw_fee,
         :deposit_fee,
-        :deposit_confirmations,
+        :min_confirmations,
         :enabled,
         :wallet_url_template,
         :transaction_url_template,

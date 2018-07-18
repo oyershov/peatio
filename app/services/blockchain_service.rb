@@ -9,7 +9,7 @@ module BlockchainService
     #
     # Returns Service for given blockchain key.
     #
-    # @param code [String, Symbol]
+    # @param key [String, Symbol]
     #   The blockchain key.
     def [](key)
       blockchain = Blockchain.find_by_key(key)
@@ -26,33 +26,71 @@ module BlockchainService
       @client     = Client[blockchain.key]
     end
 
-    def current_height
-      @blockchain.height
-    end
-
     protected
 
-    def save_deposits!(deposits)
+    def update_or_create_deposits!(deposits)
       deposits.each do |deposit_hash|
 
         # If deposit doesn't exist create it.
-        deposit = Deposits::Coin.find_or_create_by!(deposit_hash.except(:confirmations))
+        deposit = Deposits::Coin
+                    .where(currency: currencies)
+                    .find_or_create_by!(deposit_hash.except(:confirmations))
 
         # Otherwise update confirmations amount for existing deposit.
-        if deposit.confirmations != deposit_hash.fetch(:confirmations)
+        next if deposit.confirmations == deposit_hash.fetch(:confirmations)
+        deposit.with_lock do
           deposit.update(confirmations: deposit_hash.fetch(:confirmations))
           deposit.accept! if deposit.confirmations >= @blockchain.min_confirmations
         end
       end
     end
 
-    def payment_addresses_where(options)
-      options = { currency_id: @blockchain.currencies.pluck(:id) }.merge(options)
-      PaymentAddress
-          .where(options)
-          .each do |payment_address|
-        yield payment_address if block_given?
+    def update_withdrawals!(withdrawals)
+      withdrawals.each do |withdrawal_hash|
+
+        withdrawal = Withdraws::Coin
+                       .where(currency: currencies)
+                       .confirming
+                       .find_by(withdrawal_hash.except(:confirmations))
+
+        # Skip non-existing in database withdrawals.
+        next if withdrawal.blank?
+
+        next if withdrawal.confirmations == withdrawal_hash.fetch(:confirmations)
+        withdrawal.with_lock do
+          withdrawal.update(confirmations: withdrawal_hash.fetch(:confirmations))
+          withdrawal.success! if withdrawal.confirmations >= @blockchain.min_confirmations
+        end
       end
+    end
+
+    def current_height
+      @blockchain.height
+    end
+
+    def currencies
+      @blockchain.currencies
+    end
+
+    def payment_addresses_where(options = {})
+      options = { currency: currencies }.merge(options)
+      PaymentAddress
+        .includes(:currency)
+        .where(options)
+        .each do |payment_address|
+          yield payment_address if block_given?
+        end
+    end
+
+    def wallets_where(options = {})
+      options = { currency: currencies,
+                  kind: %i[cold warm hot] }.merge(options)
+      Wallet
+        .includes(:currency)
+        .where(options)
+        .each do |wallet|
+          yield wallet if block_given?
+        end
     end
   end
 end
