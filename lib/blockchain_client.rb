@@ -1,7 +1,7 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-module Client
+module BlockchainClient
   Error                  = Class.new(StandardError) # TODO: Rename to Exception.
   ConnectionRefusedError = Class.new(StandardError) # TODO: Remove this.
 
@@ -15,7 +15,7 @@ module Client
     def [](key)
       blockchain = Blockchain.find_by_key(key)
       if blockchain.try(:client).present?
-        "Client::#{blockchain.client.capitalize}"
+        "BlockchainClient::#{blockchain.client.capitalize}"
       end.constantize.new(blockchain)
     end
   end
@@ -82,7 +82,7 @@ module Client
     def convert_to_base_unit!(value)
       x = value.to_d * blockchain.base_factor
       unless (x % 1).zero?
-        raise CoinAPI::Error, "Failed to convert value to base (smallest) unit because it exceeds the maximum precision: " +
+        raise BlockchainClient::Error, "Failed to convert value to base (smallest) unit because it exceeds the maximum precision: " +
                               "#{value.to_d} - #{x.to_d} must be equal to zero."
       end
       x.to_i

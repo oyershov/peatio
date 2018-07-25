@@ -24,7 +24,7 @@ describe BlockchainService::Ethereum do
         .tap { |b| b.update(height: start_block) }
     end
 
-    let(:client) { Client[blockchain.key] }
+    let(:client) { BlockchainClient[blockchain.key] }
 
     def request_body(block_number, index)
       { jsonrpc: '2.0',

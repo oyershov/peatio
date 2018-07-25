@@ -24,7 +24,7 @@ describe BlockchainService::Bitcoin do
         .tap { |b| b.update(height: start_block) }
     end
 
-    let(:client) { Client[blockchain.key] }
+    let(:client) { BlockchainClient[blockchain.key] }
 
     def request_block_hash_body(block_height)
       { jsonrpc: '1.0',

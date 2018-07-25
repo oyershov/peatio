@@ -68,22 +68,6 @@ class Currency < ActiveRecord::Base
     end
   end
 
-  def api
-    CoinAPI[code]
-  end
-
-  def balance_cache_key
-    "peatio:hotwallet:#{code}:balance"
-  end
-
-  def balance
-    Rails.cache.read(balance_cache_key) || 0
-  end
-
-  def refresh_balance
-    Rails.cache.write(balance_cache_key, api.load_balance || 'N/A') if coin?
-  end
-
   # Allows to dynamically check value of code:
   #
   #   code.btc? # true if code equals to "btc".

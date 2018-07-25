@@ -25,7 +25,7 @@ module BlockchainService
 
     def initialize(blockchain)
       @blockchain = blockchain
-      @client     = Client[blockchain.key]
+      @client     = BlockchainClient[blockchain.key]
     end
 
     protected
