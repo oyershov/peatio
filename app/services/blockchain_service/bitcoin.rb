@@ -3,13 +3,13 @@
 module BlockchainService
   class Bitcoin < Base
 
-    def process_blockchain(blocks_limit: 10)
-      current_block   = blockchain.height || 0
-      latest_block    = [client.latest_block_number, current_block + blocks_limit].min
+    def process_blockchain(blocks_limit: 5)
+      latest_block = client.latest_block_number
+      from_block   = blockchain.height || 0
+      to_block     = [latest_block, from_block + blocks_limit].min
 
-      (current_block..latest_block).each do |block_id|
-
-        Rails.logger.info { "Started processing #{blockchain.key} block number #{blockchain.height}." }
+      (from_block..to_block).each do |block_id|
+        Rails.logger.info { "Started processing #{blockchain.key} block number #{block_id}." }
 
         block_hash = client.get_block_hash(block_id)
         next if block_hash.blank?
@@ -20,13 +20,21 @@ module BlockchainService
         deposits    = build_deposits(block_json, block_id, latest_block)
         withdrawals = build_withdrawals(block_json, block_id, latest_block)
 
+        deposits.map { |d| d[:txid] }.join(',').tap do |txids|
+          Rails.logger.info { "Deposit trancations in block #{block_id}: #{txids}" }
+        end
+
+        withdrawals.map { |d| d[:txid] }.join(',').tap do |txids|
+          Rails.logger.info { "Withdraw trancations in block #{block_id}: #{txids}" }
+        end
+
         update_or_create_deposits!(deposits)
         update_withdrawals!(withdrawals)
 
         # Mark block as processed if both deposits and withdrawals were confirmed.
         blockchain.update(height: block_id) if latest_block - block_id > blockchain.min_confirmations
 
-        Rails.logger.info { "Finished processing #{blockchain.key} block number #{blockchain.height}." }
+        Rails.logger.info { "Finished processing #{blockchain.key} block number #{block_id}." }
       rescue => e
         report_exception(e)
       end
