@@ -2,9 +2,12 @@
 # frozen_string_literal: true
 module BlockchainService
   class Bitcoin < Base
-
-    def process_blockchain(blocks_limit: 5)
+    # Rough number of blocks per hour for Bitcoin is 6.
+    def process_blockchain(blocks_limit: 6)
       latest_block = client.latest_block_number
+      # Don't start process if we didn't receive new blocks.
+      return if blockchain.height + blockchain.min_confirmations >= latest_block
+
       from_block   = blockchain.height || 0
       to_block     = [latest_block, from_block + blocks_limit].min
 
