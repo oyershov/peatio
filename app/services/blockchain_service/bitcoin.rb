@@ -1,12 +1,17 @@
 # encoding: UTF-8
 # frozen_string_literal: true
+
 module BlockchainService
   class Bitcoin < Base
     # Rough number of blocks per hour for Bitcoin is 6.
     def process_blockchain(blocks_limit: 6, force: false)
       latest_block = client.latest_block_number
+
       # Don't start process if we didn't receive new blocks.
-      return if blockchain.height + blockchain.min_confirmations >= latest_block && !force
+      if blockchain.height + blockchain.min_confirmations >= latest_block && !force
+        Rails.logger.info { "Skip synchronization. No new blocks detected height: #{blockchain.height}, latest_block: #{latest_block}" }
+        return
+      end
 
       from_block   = blockchain.height || 0
       to_block     = [latest_block, from_block + blocks_limit].min
@@ -20,8 +25,8 @@ module BlockchainService
         block_json = client.get_block(block_hash)
         next if block_json.blank? || block_json['tx'].blank?
 
-        deposits    = build_deposits(block_json, block_id, latest_block)
-        withdrawals = build_withdrawals(block_json, block_id, latest_block)
+        deposits    = build_deposits(block_json, block_id)
+        withdrawals = build_withdrawals(block_json, block_id)
 
         deposits.map { |d| d[:txid] }.join(',').tap do |txids|
           Rails.logger.info { "Deposit trancations in block #{block_id}: #{txids}" }
@@ -45,7 +50,7 @@ module BlockchainService
 
     private
 
-    def build_deposits(block_json, block_id, latest_block)
+    def build_deposits(block_json, block_id)
       block_json
         .fetch('tx')
         .each_with_object([]) do |tx, deposits|
@@ -53,7 +58,7 @@ module BlockchainService
         payment_addresses_where(address: client.to_address(tx)) do |payment_address|
           # If payment address currency doesn't match with blockchain
 
-          deposit_txs = client.build_transaction(tx, block_id, latest_block, payment_address.address)
+          deposit_txs = client.build_transaction(tx, block_id, payment_address.address)
 
           deposit_txs.fetch(:entries).each_with_index do |entry, i|
             deposits << { txid:           deposit_txs[:id],
@@ -62,13 +67,13 @@ module BlockchainService
                           member:         payment_address.account.member,
                           currency:       payment_address.currency,
                           txout:          i,
-                          confirmations:  deposit_txs[:confirmations] }
+                          block_number:   deposit_txs[:block_number] }
           end
         end
       end
     end
 
-    def build_withdrawals(block_json, block_id, latest_block)
+    def build_withdrawals(block_json, block_id)
       block_json
         .fetch('tx')
         .each_with_object([]) do |tx, withdrawals|
@@ -76,12 +81,12 @@ module BlockchainService
         Withdraws::Coin.where(currency: currencies, txid: client.normalize_txid(tx.fetch('txid'))).each do |withdraw|
           # If wallet currency doesn't match with blockchain transaction
 
-          withdraw_txs = client.build_transaction(tx, block_id, latest_block, withdraw.rid)
+          withdraw_txs = client.build_transaction(tx, block_id, withdraw.rid)
           withdraw_txs.fetch(:entries).each do |entry|
             withdrawals << {  txid:           withdraw_txs[:id],
                               rid:            entry[:address],
                               sum:            entry[:amount],
-                              confirmations:  withdraw_txs[:confirmations] }
+                              block_number:   withdraw_txs[:block_number] }
           end
         end
       end

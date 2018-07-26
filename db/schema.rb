@@ -75,19 +75,19 @@ ActiveRecord::Schema.define(version: 20180720165705) do
   add_index "currencies", ["enabled"], name: "index_currencies_on_enabled", using: :btree
 
   create_table "deposits", force: :cascade do |t|
-    t.integer  "member_id",     limit: 4,                                         null: false
-    t.string   "currency_id",   limit: 10,                                        null: false
-    t.decimal  "amount",                    precision: 32, scale: 16,             null: false
-    t.decimal  "fee",                       precision: 32, scale: 16,             null: false
-    t.string   "address",       limit: 64
-    t.string   "txid",          limit: 128
-    t.integer  "txout",         limit: 4
-    t.string   "aasm_state",    limit: 30,                                        null: false
-    t.integer  "confirmations", limit: 4,                             default: 0, null: false
-    t.string   "type",          limit: 30,                                        null: false
-    t.string   "tid",           limit: 64,                                        null: false
-    t.datetime "created_at",                                                      null: false
-    t.datetime "updated_at",                                                      null: false
+    t.integer  "member_id",    limit: 4,                             null: false
+    t.string   "currency_id",  limit: 10,                            null: false
+    t.decimal  "amount",                   precision: 32, scale: 16, null: false
+    t.decimal  "fee",                      precision: 32, scale: 16, null: false
+    t.string   "address",      limit: 64
+    t.string   "txid",         limit: 128
+    t.integer  "txout",        limit: 4
+    t.string   "aasm_state",   limit: 30,                            null: false
+    t.integer  "block_number", limit: 4
+    t.string   "type",         limit: 30,                            null: false
+    t.string   "tid",          limit: 64,                            null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.datetime "completed_at"
   end
 
@@ -204,20 +204,20 @@ ActiveRecord::Schema.define(version: 20180720165705) do
   end
 
   create_table "withdraws", force: :cascade do |t|
-    t.integer  "account_id",    limit: 4,                                         null: false
-    t.integer  "member_id",     limit: 4,                                         null: false
-    t.string   "currency_id",   limit: 10,                                        null: false
-    t.decimal  "amount",                    precision: 32, scale: 16,             null: false
-    t.decimal  "fee",                       precision: 32, scale: 16,             null: false
-    t.string   "txid",          limit: 128
-    t.string   "aasm_state",    limit: 30,                                        null: false
-    t.decimal  "sum",                       precision: 32, scale: 16,             null: false
-    t.string   "type",          limit: 30,                                        null: false
-    t.string   "tid",           limit: 64,                                        null: false
-    t.string   "rid",           limit: 64,                                        null: false
-    t.integer  "confirmations", limit: 4,                             default: 0, null: false
-    t.datetime "created_at",                                                      null: false
-    t.datetime "updated_at",                                                      null: false
+    t.integer  "account_id",   limit: 4,                             null: false
+    t.integer  "member_id",    limit: 4,                             null: false
+    t.string   "currency_id",  limit: 10,                            null: false
+    t.decimal  "amount",                   precision: 32, scale: 16, null: false
+    t.decimal  "fee",                      precision: 32, scale: 16, null: false
+    t.string   "txid",         limit: 128
+    t.string   "aasm_state",   limit: 30,                            null: false
+    t.integer  "block_number", limit: 4
+    t.decimal  "sum",                      precision: 32, scale: 16, null: false
+    t.string   "type",         limit: 30,                            null: false
+    t.string   "tid",          limit: 64,                            null: false
+    t.string   "rid",          limit: 64,                            null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
     t.datetime "completed_at"
   end
 

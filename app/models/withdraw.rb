@@ -20,6 +20,7 @@ class Withdraw < ActiveRecord::Base
 
   validates :rid, :aasm_state, presence: true
   validates :txid, uniqueness: { scope: :currency_id }, if: :txid?
+  validates :block_number, allow_blank: true, numericality: { greater_than_or_equal_to: 0, only_integer: true }
 
   scope :completed, -> { where(aasm_state: COMPLETED_STATES) }
 
@@ -65,6 +66,7 @@ class Withdraw < ActiveRecord::Base
     end
 
     event :dispatch do
+      # TODO: add validations that txid and block_number are not blank.
       transitions from: :processing, to: :confirming
     end
 
@@ -140,22 +142,22 @@ end
 #
 # Table name: withdraws
 #
-#  id            :integer          not null, primary key
-#  account_id    :integer          not null
-#  member_id     :integer          not null
-#  currency_id   :string(10)       not null
-#  amount        :decimal(32, 16)  not null
-#  fee           :decimal(32, 16)  not null
-#  txid          :string(128)
-#  aasm_state    :string(30)       not null
-#  sum           :decimal(32, 16)  not null
-#  type          :string(30)       not null
-#  tid           :string(64)       not null
-#  rid           :string(64)       not null
-#  confirmations :integer          default(0), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  completed_at  :datetime
+#  id           :integer          not null, primary key
+#  account_id   :integer          not null
+#  member_id    :integer          not null
+#  currency_id  :string(10)       not null
+#  amount       :decimal(32, 16)  not null
+#  fee          :decimal(32, 16)  not null
+#  txid         :string(128)
+#  aasm_state   :string(30)       not null
+#  block_number :integer
+#  sum          :decimal(32, 16)  not null
+#  type         :string(30)       not null
+#  tid          :string(64)       not null
+#  rid          :string(64)       not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  completed_at :datetime
 #
 # Indexes
 #

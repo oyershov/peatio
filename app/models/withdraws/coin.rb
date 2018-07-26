@@ -32,6 +32,18 @@ module Withdraws
       end
     end
 
+    def latest_block_number
+      currency.blockchain_api.latest_block_number
+    end
+
+    def confirmations
+      return 0 if block_number.blank?
+      latest_block_number - block_number
+    rescue Faraday::ConnectionFailed => e
+      report_exception(e)
+      'N/A'
+    end
+
     # TODO: backport audit!
     def audit!
       # inspection = currency.api.inspect_address!(rid)
@@ -47,8 +59,13 @@ module Withdraws
 
     def as_json(*)
       super.merge \
-        wallet_url:      wallet_url,
-        transaction_url: transaction_url
+        wallet_url:       wallet_url,
+        transaction_url:  transaction_url,
+        confirmations:    confirmations
+    end
+
+    def as_json_for_event_api
+      super.merge blockchain_confirmations: confirmations
     end
   end
 end
@@ -58,22 +75,22 @@ end
 #
 # Table name: withdraws
 #
-#  id            :integer          not null, primary key
-#  account_id    :integer          not null
-#  member_id     :integer          not null
-#  currency_id   :string(10)       not null
-#  amount        :decimal(32, 16)  not null
-#  fee           :decimal(32, 16)  not null
-#  txid          :string(128)
-#  aasm_state    :string(30)       not null
-#  sum           :decimal(32, 16)  not null
-#  type          :string(30)       not null
-#  tid           :string(64)       not null
-#  rid           :string(64)       not null
-#  confirmations :integer          default(0), not null
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  completed_at  :datetime
+#  id           :integer          not null, primary key
+#  account_id   :integer          not null
+#  member_id    :integer          not null
+#  currency_id  :string(10)       not null
+#  amount       :decimal(32, 16)  not null
+#  fee          :decimal(32, 16)  not null
+#  txid         :string(128)
+#  aasm_state   :string(30)       not null
+#  block_number :integer
+#  sum          :decimal(32, 16)  not null
+#  type         :string(30)       not null
+#  tid          :string(64)       not null
+#  rid          :string(64)       not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  completed_at :datetime
 #
 # Indexes
 #
