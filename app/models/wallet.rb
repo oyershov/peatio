@@ -1,14 +1,19 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-# TODO: Add specs.
+
 class Wallet < ActiveRecord::Base
+  serialize :gateway, JSON
+
   include BelongsToCurrency
 
   validates :name, :address, presence: true
   validates :status, inclusion: { in: %w[active disabled] }
   validates :kind, inclusion: { in: %w[hot warm cold deposit] }
   validates :nsig, numericality: { greater_than_or_equal_to: 1, only_integer: true }
+  validates :max_balance, numericality: { greater_than_or_equal_to: 0}
+  # FIXME: add json validation.
+  validates :gateway, length: { maximum: 1000 }
 
   scope :active, -> { where(status: 'active') }
 
@@ -20,7 +25,7 @@ class Wallet < ActiveRecord::Base
 end
 
 # == Schema Information
-# Schema version: 20180708171446
+# Schema version: 20180726110440
 #
 # Table name: wallets
 #
@@ -30,6 +35,8 @@ end
 #  address     :string(255)      not null
 #  kind        :string(32)       not null
 #  nsig        :integer
+#  gateway     :string(1000)     default({}), not null
+#  max_balance :decimal(32, 16)  default(0.0), not null
 #  parent      :integer
 #  status      :string(32)
 #  created_at  :datetime         not null

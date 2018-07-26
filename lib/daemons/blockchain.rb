@@ -13,7 +13,7 @@ while running
 
     BlockchainService[bc.key].process_blockchain
 
-    Rails.logger.info { "Processing #{bc.name} blocks." }
+    Rails.logger.info { "Finished processing #{bc.name} blocks." }
   rescue => e
     report_exception(e)
   end
