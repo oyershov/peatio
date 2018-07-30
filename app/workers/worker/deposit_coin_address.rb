@@ -10,7 +10,7 @@ module Worker
       return unless acc
       return unless acc.currency.coin?
 
-      wallet = Wallet.active.deposit.where(blockchain_key: acc.currency.blockchain_key).first
+      wallet = Wallet.active.deposit.find_by(currency_id: acc.currency_id)
       return unless wallet
 
       wallet_service = WalletService[wallet]

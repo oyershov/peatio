@@ -27,7 +27,7 @@ module BelongsToCurrency
     end
   end
 
-  def amount_base_unit!
+  def amount_to_base_unit!
     x = amount.to_d * currency.base_factor
     unless (x % 1).zero?
       raise StandardError::Error, "Failed to convert value to base (smallest) unit because it exceeds the maximum precision: " +

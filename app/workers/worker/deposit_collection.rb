@@ -12,12 +12,12 @@ module Worker
         return
       end
 
-      wallet = Wallet.active.deposit.find_by(blockchain_key: deposit.currency.blockchain_key)
+      wallet = Wallet.active.deposit.find_by(currency_id: deposit.currency_id)
       unless wallet
         Rails.logger.warn { "Can't find active deposit wallet for currency with code: #{deposit.currency_id}."}
         return
       end
-
+      binding.pry
       txid = WalletService[wallet].collect_deposit!(deposit)
       Rails.logger.warn { "The API accepted deposit collection and assigned transaction ID: #{txid}." }
     rescue => e

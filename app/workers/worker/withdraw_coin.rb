@@ -29,7 +29,7 @@ module Worker
 
         Rails.logger.warn { "Information: sending #{withdraw.amount.to_s("F")} (exchange fee is #{withdraw.fee.to_s("F")}) #{withdraw.currency.code.upcase} to #{withdraw.rid}." }
 
-        wallet = Wallet.active.withdraw.find_by(blockchain_key: withdraw.currency.blockchain_key, kind: :hot)
+        wallet = Wallet.active.withdraw.find_by(currency_id: withdraw.currency_id, kind: :hot)
         unless wallet
           Rails.logger.warn { "Can't find active hot wallet for currency with code: #{withdraw.currency_id}."}
           return
@@ -38,13 +38,14 @@ module Worker
         currency = withdraw.currency
 
         wallet_service = WalletService[wallet]
-        balance = wallet_service.load_balance(currency)
+        # TODO: we load balance of hot, warm and cold wallets
+        # balance = wallet_service.load_balance(currency)
 
-        if balance < withdraw.sum
-          Rails.logger.warn { "The withdraw failed because wallet balance is not sufficient (wallet balance is #{balance.to_s("F")})." }
-          withdraw.suspect!
-          return
-        end
+        # if balance < withdraw.sum
+        #   Rails.logger.warn { "The withdraw failed because wallet balance is not sufficient (wallet balance is #{balance.to_s("F")})." }
+        #   withdraw.suspect!
+        #   return
+        # end
 
         # pa = withdraw.account.payment_address
 

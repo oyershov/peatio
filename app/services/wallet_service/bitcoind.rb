@@ -24,9 +24,9 @@ module WalletService
       # TODO: Dynamicly check wallet balance and select where to send funds.
       # For keeping it simple we will collect all funds to hot wallet.
       Wallet
-          .active
-          .withdraw
-          .find_by(blockchain_key: deposit.currency.blockchain_key, kind: :hot)
+        .active
+        .withdraw
+        .find_by(currency_id: deposit.currency_id, kind: :hot)
     end
 
     def build_withdrawal!(withdraw, options = {})

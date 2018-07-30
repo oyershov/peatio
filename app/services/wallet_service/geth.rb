@@ -77,7 +77,7 @@ module WalletService
       client.create_eth_withdrawal!(
         { address: wallet.address, secret: wallet.secret },
         { address: withdraw.rid },
-        withdraw.amount_base_unit!
+        withdraw.amount_to_base_unit!
       )
     end
 
@@ -85,7 +85,7 @@ module WalletService
       client.create_erc20_withdrawal!(
           { address: wallet.address, secret: wallet.secret },
           { address: withdraw.rid },
-          withdraw.amount_base_unit!,
+          withdraw.amount_to_base_unit!,
           {contract_address: withdraw.currency.erc20_contract_address}
       )
     end
@@ -96,7 +96,7 @@ module WalletService
       Wallet
         .active
         .withdraw
-        .find_by(blockchain_key: deposit.currency.blockchain_key, kind: :hot)
+        .find_by(currency_id: deposit.currency_id, kind: :hot)
     end
 
     def eth_fees_wallet

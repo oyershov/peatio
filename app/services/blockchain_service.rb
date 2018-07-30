@@ -48,8 +48,8 @@ module BlockchainService
       withdrawals.each do |withdrawal_hash|
 
         withdrawal = Withdraws::Coin
-                       .where(currency: currencies)
                        .confirming
+                       .where(currency: currencies)
                        .find_by(withdrawal_hash.except(:block_number))
 
         # Skip non-existing in database withdrawals.

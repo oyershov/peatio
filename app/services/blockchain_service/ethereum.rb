@@ -84,6 +84,7 @@ module BlockchainService
             # currency skip this wallet.
             next if wallet.currency.code.eth? != client.is_eth_tx?(tx)
 
+
             @client
               .build_transaction(tx, block_json, wallet.currency)
               .tap do |withdraw_tx|
