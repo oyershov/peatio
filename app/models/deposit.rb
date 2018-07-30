@@ -30,7 +30,7 @@ class Deposit < ActiveRecord::Base
     event(:reject) { transitions from: :submitted, to: :rejected }
     event :accept do
       transitions from: :submitted, to: :accepted
-      after { account.plus_funds(amount) }
+      after %i[plus_funds collect!]
     end
   end
 
@@ -61,6 +61,14 @@ class Deposit < ActiveRecord::Base
 
   def completed?
     !submitted?
+  end
+
+  def plus_funds
+    account.plus_funds(amount)
+  end
+
+  def collect!
+    AMQPQueue.enqueue(:deposit_collection, id: id) if coin?
   end
 end
 
