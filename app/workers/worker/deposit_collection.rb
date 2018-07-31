@@ -17,7 +17,6 @@ module Worker
         Rails.logger.warn { "Can't find active deposit wallet for currency with code: #{deposit.currency_id}."}
         return
       end
-      binding.pry
       txid = WalletService[wallet].collect_deposit!(deposit)
       Rails.logger.warn { "The API accepted deposit collection and assigned transaction ID: #{txid}." }
     rescue => e

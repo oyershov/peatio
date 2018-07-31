@@ -85,7 +85,7 @@ module BlockchainService
           withdraw_txs.fetch(:entries).each do |entry|
             withdrawals << {  txid:           withdraw_txs[:id],
                               rid:            entry[:address],
-                              sum:            entry[:amount],
+                              amount:         entry[:amount],
                               block_number:   withdraw_txs[:block_number] }
           end
         end

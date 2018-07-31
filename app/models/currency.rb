@@ -154,6 +154,10 @@ class Currency < ActiveRecord::Base
     !enabled
   end
 
+  def is_erc20?
+    erc20_contract_address.present?
+  end
+
   def blockchain_api
     BlockchainClient[blockchain.key]
   end

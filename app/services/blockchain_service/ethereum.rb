@@ -50,24 +50,27 @@ module BlockchainService
     def build_deposits(block_json)
       block_json
         .fetch('transactions')
-        .each_with_object([]) do |tx, deposits|
-          next if client.invalid_transaction?(tx)
+        .each_with_object([]) do |block_txn, deposits|
 
-          payment_addresses_where(address: client.to_address(tx)) do |payment_address|
-            # If payment address currency doesn't match with blockchain
-            # transaction currency skip this payment address.
-            next if payment_address.currency.code.eth? != client.is_eth_tx?(tx)
+          if block_txn.fetch('input').hex <= 0
+            txn = block_txn
+            next if client.invalid_eth_transaction?(txn)
+          else
+            txn = client.get_txn_receipt(block_txn.fetch('hash'))
+            next if client.invalid_erc20_transaction?(txn)
+          end
 
-            @client
-              .build_transaction(tx, block_json, payment_address.currency)
-              .tap do |deposit_tx|
-              deposits << { txid:           deposit_tx[:id],
-                            address:        deposit_tx[:to],
-                            amount:         deposit_tx[:amount],
+          payment_addresses_where(address: client.to_address(txn)) do |payment_address|
+
+            deposit_txs = client.build_transaction(txn, block_json, payment_address.currency) # block_txn required for ETH transaction
+            deposit_txs.fetch(:entries).each_with_index do |entry, i|
+              deposits << { txid:           deposit_txs[:id],
+                            address:        entry[:address],
+                            amount:         entry[:amount],
                             member:         payment_address.account.member,
                             currency:       payment_address.currency,
-                            txout:          0,
-                            block_number:   deposit_tx[:block_number] }
+                            txout:          i,
+                            block_number:   deposit_txs[:block_number] }
             end
           end
         end
@@ -76,22 +79,27 @@ module BlockchainService
     def build_withdrawals(block_json)
       block_json
         .fetch('transactions')
-        .each_with_object([]) do |tx, withdrawals|
-          next if client.invalid_transaction?(tx)
+        .each_with_object([]) do |block_txn, withdrawals|
 
-          wallets_where(address: client.from_address(tx)) do |wallet|
-            # If wallet currency doesn't match with blockchain transaction
-            # currency skip this wallet.
-            next if wallet.currency.code.eth? != client.is_eth_tx?(tx)
+          Withdraws::Coin
+            .where(currency: currencies)
+            .where(txid: client.normalize_txid(block_txn.fetch('hash')))
+            .each do |withdraw|
 
+            if block_txn.fetch('input').hex <= 0
+              txn = block_txn
+              next if client.invalid_eth_transaction?(txn)
+            else
+              txn = client.get_txn_receipt(block_txn.fetch('hash'))
+              next if client.invalid_erc20_transaction?(txn)
+            end
 
-            @client
-              .build_transaction(tx, block_json, wallet.currency)
-              .tap do |withdraw_tx|
-              withdrawals << { txid:           withdraw_tx[:id],
-                               rid:            withdraw_tx[:to],
-                               sum:            withdraw_tx[:amount],
-                               block_number:   withdraw_tx[:block_number] }
+            withdraw_txs = client.build_transaction(txn, block_json, withdraw.currency)  # block_txn required for ETH transaction
+            withdraw_txs.fetch(:entries).each do |entry|
+            withdrawals << { txid:           withdraw_txs[:id],
+                             rid:            entry[:address],
+                             amount:         entry[:amount],
+                             block_number:   withdraw_txs[:block_number] }
             end
           end
         end

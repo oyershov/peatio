@@ -16,6 +16,12 @@ describe BlockchainService::Ethereum do
         .yield_self { |file| JSON.load(file) }
     end
 
+    let(:transaction_receipt_data) do
+      Rails.root.join('spec', 'resources', 'ethereum-data/transaction-receipts', block_file_name)
+          .yield_self { |file_path| File.open(file_path) }
+          .yield_self { |file| JSON.load(file) }
+    end
+
     let(:start_block)   { block_data.first['result']['number'].hex }
     let(:latest_block)  { block_data.last['result']['number'].hex }
 
@@ -26,9 +32,17 @@ describe BlockchainService::Ethereum do
 
     let(:client) { BlockchainClient[blockchain.key] }
 
+    def request_receipt_body(txid, index)
+      { jsonrpc: '2.0',
+        id:      1,
+        method:  :eth_getTransactionReceipt,
+        params:  [txid]
+      }.to_json
+    end
+
     def request_body(block_number, index)
       { jsonrpc: '2.0',
-        id:      index + 1, # json_rpc_call_id increments on each request.
+        id:      1,
         method:  :eth_getBlockByNumber,
         params:  [block_number, true]
       }.to_json
@@ -58,11 +72,20 @@ describe BlockchainService::Ethereum do
       before do
         # Mock requests and methods.
         client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
+        client.class.any_instance.stubs(:rpc_call_id).returns(1)
+
         block_data.each_with_index do |blk, index|
           stub_request(:post, client.endpoint)
             .with(body: request_body(blk['result']['number'],index))
             .to_return(body: blk.to_json)
         end
+
+        transaction_receipt_data.each_with_index do |rcpt, index|
+          stub_request(:post, client.endpoint)
+            .with(body: request_receipt_body(rcpt['result']['transactionHash'],index))
+            .to_return(body: rcpt.to_json)
+        end
+
         # Process blockchain data.
         BlockchainService[blockchain.key].process_blockchain(force: true)
       end
@@ -120,10 +143,18 @@ describe BlockchainService::Ethereum do
       before do
         # Mock requests and methods.
         client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
+        client.class.any_instance.stubs(:rpc_call_id).returns(1)
+
         block_data.each_with_index do |blk, index|
           stub_request(:post, client.endpoint)
             .with(body: request_body(blk['result']['number'], index))
             .to_return(body: blk.to_json)
+        end
+
+        transaction_receipt_data.each_with_index do |rcpt, index|
+          stub_request(:post, client.endpoint)
+              .with(body: request_receipt_body(rcpt['result']['transactionHash'],index))
+              .to_return(body: rcpt.to_json)
         end
         BlockchainService[blockchain.key].process_blockchain(force: true)
       end
@@ -160,17 +191,17 @@ describe BlockchainService::Ethereum do
       let(:expected_withdrawals) do
         [
           {
-            sum:  '0x14d1120d7b160000'.hex.to_d / currency.base_factor,
+            sum:  '0x14d1120d7b160000'.hex.to_d / currency.base_factor + currency.withdraw_fee,
             rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
             txid: '0x643ff4da78faca97454766d9c2a1d455c19083591c87013740acc60286d6dd80'
           },
           {
-            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor,
+            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor + currency.withdraw_fee,
             rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
             txid: '0x5d7f014e7f64c1a8010e64e1f6b6d52efa9c78bb113615bf97d60f30c9cd290b'
           },
           {
-            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor,
+            sum:  '0xde0b6b3a7640000'.hex.to_d / currency.base_factor + currency.withdraw_fee,
             rid:  '0xb3ebc7b5b631e8d145f383c8cd07f0f00dd56a30',
             txid: '0x66516a32e90c22a8104b3a3ec2d533efdfcfc004166aa05b555237a4aded99ad'
           }
@@ -200,10 +231,18 @@ describe BlockchainService::Ethereum do
       before do
         # Mock requests and methods.
         client.class.any_instance.stubs(:latest_block_number).returns(latest_block)
+        client.class.any_instance.stubs(:rpc_call_id).returns(1)
+
         block_data.each_with_index do |blk, index|
           stub_request(:post, client.endpoint)
             .with(body: request_body(blk['result']['number'], index))
             .to_return(body: blk.to_json)
+        end
+
+        transaction_receipt_data.each_with_index do |rcpt, index|
+          stub_request(:post, client.endpoint)
+              .with(body: request_receipt_body(rcpt['result']['transactionHash'],index))
+              .to_return(body: rcpt.to_json)
         end
         BlockchainService[blockchain.key].process_blockchain(force: true)
       end

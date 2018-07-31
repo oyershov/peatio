@@ -36,6 +36,8 @@ queue:
     name: peatio.pusher.member
   withdraw_coin:
     name: peatio.withdraw.coin
+  deposit_collection_fees:
+    name: peatio.deposit.collection_fees
   deposit_collection:
     name: peatio.deposit.collection
   deposit_coin_address:
@@ -65,6 +67,8 @@ binding:
     queue: pusher_member
   withdraw_coin:
     queue: withdraw_coin
+  deposit_collection_fees:
+    queue: deposit_collection_fees
   deposit_collection:
     queue: deposit_collection
   deposit_coin_address:

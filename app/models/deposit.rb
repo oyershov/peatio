@@ -68,7 +68,13 @@ class Deposit < ActiveRecord::Base
   end
 
   def collect!
-    AMQPQueue.enqueue(:deposit_collection, id: id) if coin?
+    if coin?
+      if currency.is_erc20?
+        AMQPQueue.enqueue(:deposit_collection_fees, id: id)
+      else
+        AMQPQueue.enqueue(:deposit_collection, id: id)
+      end
+    end
   end
 end
 

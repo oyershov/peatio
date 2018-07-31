@@ -117,12 +117,12 @@ describe BlockchainService::Bitcoin do
       let(:expected_withdrawals) do
         [
           {
-            sum:  0.30000000,
+            sum:  0.30000000 + currency.withdraw_fee,
             rid:  '2N8ej8FhvQFT9Rw2Vfpiw5uv9CLuTh1BjFB',
             txid: '4a60db9608a3a7681808efbac83330c8191adadb7d26c67adb5acdf956eede8b'
           },
           {
-            sum:  0.40000000,
+            sum:  0.40000000 + currency.withdraw_fee,
             rid:  '2N5G6fEG3N4uZcXnQsE42YDM5nXq35m99Vx',
             txid: '8de7434cd62089b88d86f742fae32374a08f690cde2905e239c33e4e69ec5617'
           }
