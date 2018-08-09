@@ -36,23 +36,50 @@ module Admin
       end
     end
 
+    def show_client_info
+      @gateway = params[:gateway]
+      @wallet = Wallet.find_by_id(params[:id]) || Wallet.new
+    end
+
     private
 
     def wallet_params
-      params.require(:wallet).permit(permitted_wallet_attributes)
+      params.require(:wallet).permit(permitted_wallet_attributes).tap do |params|
+        boolean_attributes.each do |param|
+          next unless params.key?(param)
+          params[param] = params[param].in?(['1', 'true', true])
+        end
+      end
+    end
+
+    def wallet_settings_params
+      params.require(:wallet).require(:settings)
     end
 
     def permitted_wallet_attributes
       %i[
-          currency_id
-          name
-          address
-          max_balance
-          kind
-          nsig
-          status
+        currency_id
+        blockchain_key
+        name
+        address
+        max_balance
+        kind
+        nsig
+        parent
+        status
+        gateway
+        uri
+        secret
+        bitgo_test_net
+        bitgo_wallet_address
+        bitgo_wallet_passphrase
+        bitgo_rest_api_root
+        bitgo_rest_api_access_token
       ]
     end
 
+    def boolean_attributes
+      %i[bitgo_test_net]
+    end
   end
 end

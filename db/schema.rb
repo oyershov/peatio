@@ -11,7 +11,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180803144827) do
+ActiveRecord::Schema.define(version: 20180808144704) do
+
   create_table "accounts", force: :cascade do |t|
     t.integer  "member_id",   limit: 4,                                          null: false
     t.string   "currency_id", limit: 10,                                         null: false
@@ -197,7 +198,8 @@ ActiveRecord::Schema.define(version: 20180803144827) do
     t.string   "address",        limit: 255,                                           null: false
     t.string   "kind",           limit: 32,                                            null: false
     t.integer  "nsig",           limit: 4
-    t.string   "gateway",        limit: 1000,                           default: "{}", null: false
+    t.string   "gateway",        limit: 20,                             default: "",   null: false
+    t.string   "settings",       limit: 1000,                           default: "{}", null: false
     t.decimal  "max_balance",                 precision: 32, scale: 16, default: 0.0,  null: false
     t.integer  "parent",         limit: 4
     t.string   "status",         limit: 32
