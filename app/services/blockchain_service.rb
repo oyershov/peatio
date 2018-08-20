@@ -32,7 +32,6 @@ module BlockchainService
 
     def update_or_create_deposits!(deposits)
       deposits.each do |deposit_hash|
-
         # If deposit doesn't exist create it.
         deposit = Deposits::Coin
                     .where(currency: currencies)
@@ -44,7 +43,6 @@ module BlockchainService
 
     def update_withdrawals!(withdrawals)
       withdrawals.each do |withdrawal_hash|
-
         withdrawal = Withdraws::Coin
                        .confirming
                        .where(currency: currencies)
