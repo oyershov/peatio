@@ -21,14 +21,14 @@ module Withdraws
     end
 
     def wallet_url
-      if currency.blockchain.explorer_address?
-        currency.blockchain.explorer_address.gsub('#{address}', rid)
+      if currency.explorer_address.present?
+        currency.explorer_address.gsub('#{address}', rid)
       end
     end
 
     def transaction_url
-      if txid? && currency.blockchain.explorer_transaction?
-        currency.blockchain.explorer_transaction.gsub('#{txid}', txid)
+      if txid? && currency.explorer_transaction.present?
+        currency.explorer_transaction.gsub('#{txid}', txid)
       end
     end
 

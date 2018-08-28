@@ -19,8 +19,8 @@ module Deposits
     end
 
     def transaction_url
-      if txid? && currency.blockchain.explorer_transaction?
-        currency.blockchain.explorer_transaction.gsub('#{txid}', txid)
+      if txid? && currency.explorer_transaction.present?
+        currency.explorer_transaction.gsub('#{txid}', txid)
       end
     end
 
