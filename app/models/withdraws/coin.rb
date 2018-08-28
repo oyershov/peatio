@@ -33,7 +33,7 @@ module Withdraws
     end
 
     def latest_block_number
-      currency.blockchain_api.latest_block_number
+      blockchain_api.latest_block_number
     end
 
     def confirmations
