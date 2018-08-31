@@ -16,6 +16,11 @@ class PaymentAddress < ActiveRecord::Base
     self.address = address.try(:downcase)
   end
 
+  before_validation do
+    next unless blockchain_api&.supports_cash_addr_format? && address?
+    self.address = CashAddr::Converter.to_cash_address(address)
+  end
+
   def enqueue_address_generation
     if address.blank? && currency.coin?
       AMQPQueue.enqueue(:deposit_coin_address, { account_id: account.id }, { persistent: true })

@@ -18,6 +18,11 @@ module Deposits
                    confirmations:   confirmations)
     end
 
+    before_validation do
+      next unless blockchain_api&.supports_cash_addr_format? && address?
+      self.address = CashAddr::Converter.to_cash_address(address)
+    end
+
     def as_json_for_event_api
       super.merge blockchain_confirmations: confirmations
     end
