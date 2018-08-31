@@ -16,6 +16,11 @@ module BelongsToCurrency
       end
     end
 
+    before_validation do
+      next unless blockchain_api&.supports_cash_addr_format? && address?
+      self.address = CashAddr::Converter.to_cash_address(address)
+    end
+
     delegate :coin?, :fiat?, :blockchain_api, to: :currency
 
     scope :with_currency, -> (model_or_id) do

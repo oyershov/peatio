@@ -21,6 +21,7 @@ class Withdraw < ActiveRecord::Base
   include BelongsToAccount
   include TIDIdentifiable
   include FeeChargeable
+  include UsesBlockchainApi
 
   acts_as_eventable prefix: 'withdraw', on: %i[create update]
 

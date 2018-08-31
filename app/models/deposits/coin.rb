@@ -8,33 +8,9 @@ module Deposits
     validates :txid, uniqueness: { scope: %i[currency_id txout] }
 
     before_validation do
-      next unless blockchain_api&.supports_cash_addr_format? && address?
-      self.address = CashAddr::Converter.to_cash_address(address)
-    end
-
-    before_validation do
       next if blockchain_api&.case_sensitive?
       self.txid = txid.try(:downcase)
       self.address = address.try(:downcase)
-    end
-
-    def transaction_url
-      if txid? && currency.explorer_transaction.present?
-        currency.explorer_transaction.gsub('#{txid}', txid)
-      end
-    end
-
-    def latest_block_number
-      blockchain_api.latest_block_number
-    end
-
-    def confirmations
-      return 0 if block_number.blank?
-      return latest_block_number - block_number if (latest_block_number - block_number) >= 0
-      'N/A'
-    rescue Faraday::ConnectionFailed => e
-      report_exception(e)
-      'N/A'
     end
 
     def as_json(*)

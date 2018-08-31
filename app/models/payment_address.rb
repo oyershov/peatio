@@ -12,11 +12,6 @@ class PaymentAddress < ActiveRecord::Base
   serialize :details, JSON
 
   before_validation do
-    next unless blockchain_api&.supports_cash_addr_format? && address?
-    self.address = CashAddr::Converter.to_cash_address(address)
-  end
-
-  before_validation do
     next if blockchain_api&.case_sensitive?
     self.address = address.try(:downcase)
   end
