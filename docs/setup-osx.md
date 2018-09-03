@@ -173,17 +173,6 @@ Then install and run yarn:
     $ npm install -g yarn
     $ bundle exec rake tmp:create yarn:install
 
-#### Setup Pusher
-
-Peatio depends on [pusher](http://pusher.com).
-A development key/secret pair for development/test
-is provided in `config/application.yml`.
-PLEASE USE IT IN DEVELOPMENT/TEST ENVIRONMENT ONLY!
-
-Set (or simply uncomment) pusher-related settings in `config/application.yml`.
-
-You can always find more details about pusher configuration at [pusher website](http://pusher.com)
-
 #### Setup bitcoind rpc endpoint
 
 Edit `config/currencies.yml`.
