@@ -1,24 +1,27 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-module BelongsToBlockchainThroughCurrency
+module HasOneBlockchainThroughCurrency
   extend ActiveSupport::Concern
-  belongs_to :blockchain, through: :currency
+
+  included do
+    has_one :blockchain, through: :currency
+  end
 
   def transaction_url
-    if txid? && currency.explorer_transaction.present?
-      currency.explorer_transaction.gsub('#{txid}', txid)
+    if txid? && blockchain.explorer_transaction.present?
+      blockchain.explorer_transaction.gsub('#{txid}', txid)
     end
   end
 
   def wallet_url
-    if currency.explorer_address.present?
-      currency.explorer_address.gsub('#{address}', rid)
+    if blockchain.explorer_address.present?
+      blockchain.explorer_address.gsub('#{address}', rid)
     end
   end
 
   def latest_block_number
-    blockchain_api.latest_block_number
+    blockchain.blockchain_api.latest_block_number
   end
 
   def confirmations

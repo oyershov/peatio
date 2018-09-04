@@ -3,7 +3,7 @@
 
 module Deposits
   class Coin < Deposit
-    include BelongsToBlockchainThroughCurrency
+    include HasOneBlockchainThroughCurrency
 
     validate { errors.add(:currency, :invalid) if currency && !currency.coin? }
     validates :address, :txid, :txout, presence: true
