@@ -3,7 +3,7 @@
 
 module Withdraws
   class Coin < Withdraw
-    include UsesBlockchainApi
+    include BelongsToBlockchainThroughCurrency
 
     before_validation do
       next unless blockchain_api&.supports_cash_addr_format? && rid?

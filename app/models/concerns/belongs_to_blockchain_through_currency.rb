@@ -1,8 +1,9 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-module UsesBlockchainApi
+module BelongsToBlockchainThroughCurrency
   extend ActiveSupport::Concern
+  belongs_to :blockchain, through: :currency
 
   def transaction_url
     if txid? && currency.explorer_transaction.present?
