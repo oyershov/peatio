@@ -3,6 +3,8 @@
 
 module Deposits
   class Coin < Deposit
+    include UsesBlockchainApi
+
     validate { errors.add(:currency, :invalid) if currency && !currency.coin? }
     validates :address, :txid, :txout, presence: true
     validates :txid, uniqueness: { scope: %i[currency_id txout] }
@@ -13,14 +15,14 @@ module Deposits
       self.address = address.try(:downcase)
     end
 
-    def as_json(*)
-      super.merge!(transaction_url: transaction_url,
-                   confirmations:   confirmations)
-    end
-
     before_validation do
       next unless blockchain_api&.supports_cash_addr_format? && address?
       self.address = CashAddr::Converter.to_cash_address(address)
+    end
+
+    def as_json(*)
+      super.merge!(transaction_url: transaction_url,
+                   confirmations:   confirmations)
     end
 
     def as_json_for_event_api

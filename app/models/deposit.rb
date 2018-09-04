@@ -10,7 +10,6 @@ class Deposit < ActiveRecord::Base
   include BelongsToMember
   include TIDIdentifiable
   include FeeChargeable
-  include UsesBlockchainApi
 
   acts_as_eventable prefix: 'deposit', on: %i[create update]
 

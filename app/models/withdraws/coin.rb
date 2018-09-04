@@ -3,6 +3,8 @@
 
 module Withdraws
   class Coin < Withdraw
+    include UsesBlockchainApi
+
     before_validation do
       next unless blockchain_api&.supports_cash_addr_format? && rid?
       self.rid = CashAddr::Converter.to_cash_address(rid) if CashAddr::Converter.is_valid?(rid)
@@ -17,12 +19,6 @@ module Withdraws
     validate do
       if blockchain_api&.supports_cash_addr_format? && rid?
         errors.add(:rid, :invalid) unless CashAddr::Converter.is_valid?(rid)
-      end
-    end
-
-    def wallet_url
-      if currency.explorer_address.present?
-        currency.explorer_address.gsub('#{address}', rid)
       end
     end
 

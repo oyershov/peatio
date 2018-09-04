@@ -4,14 +4,20 @@
 module UsesBlockchainApi
   extend ActiveSupport::Concern
 
-  def latest_block_number
-    blockchain_api.latest_block_number
-  end
-
   def transaction_url
     if txid? && currency.explorer_transaction.present?
       currency.explorer_transaction.gsub('#{txid}', txid)
     end
+  end
+
+  def wallet_url
+    if currency.explorer_address.present?
+      currency.explorer_address.gsub('#{address}', rid)
+    end
+  end
+
+  def latest_block_number
+    blockchain_api.latest_block_number
   end
 
   def confirmations
