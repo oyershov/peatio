@@ -8,10 +8,6 @@ module BlockchainClient
       json_rpc(:getblock, [block_hash, true]).fetch('result')
     end
 
-    def get_raw_transaction(txid)
-      json_rpc(:getrawtransaction, [txid, true]).fetch('result')
-    end
-
     def normalize_address(address)
       CashAddr::Converter.to_cash_address(super)
     end
