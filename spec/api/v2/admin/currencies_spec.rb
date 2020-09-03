@@ -110,6 +110,12 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.size).to eq Currency.where(deposit_enabled: false).count
     end
 
+    it 'returns error in case of invalid deposit_enabled type' do
+      api_get '/api/v2/admin/currencies', params: { deposit_enabled: 'invalid' }, token: token
+      expect(response).to have_http_status 422
+      expect(response).to include_api_error('admin.currency.non_boolean_deposit_enabled')
+    end
+
     it 'list of withdrawal enabled currencies' do
       api_get '/api/v2/admin/currencies', params: { withdrawal_enabled: true }, token: token
       expect(response).to be_successful
@@ -126,6 +132,12 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.size).to eq Currency.where(withdrawal_enabled: false).count
     end
 
+    it 'returns error in case of invalid withdrawal_enabled type' do
+      api_get '/api/v2/admin/currencies', params: { withdrawal_enabled: 'invalid' }, token: token
+      expect(response).to have_http_status 422
+      expect(response).to include_api_error('admin.currency.non_boolean_withdrawal_enabled')
+    end
+
     it 'list of visible currencies' do
       api_get '/api/v2/admin/currencies', params: { visible: true }, token: token
       expect(response).to be_successful
@@ -140,6 +152,12 @@ describe API::V2::Admin::Currencies, type: :request do
 
       result = JSON.parse(response.body)
       expect(result.size).to eq Currency.where(visible: false).count
+    end
+
+    it 'returns error in case of invalid visible type' do
+      api_get '/api/v2/admin/currencies', params: { visible: 'invalid' }, token: token
+      expect(response).to have_http_status 422
+      expect(response).to include_api_error('admin.currency.non_boolean_visible')
     end
 
     it 'list of visible coins' do

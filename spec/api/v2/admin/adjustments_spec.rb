@@ -270,7 +270,7 @@ describe API::V2::Admin::Adjustments, type: :request do
         api_post '/api/v2/admin/adjustments/action', token: token, params: { id: adjustment.id, action: :accept }
       }.to change { adjustment.reload.state }.to('accepted')
       .and change { Operations::Asset.count }.by(1)
-      .and change { Operations::Liability }.by(1)
+      .and change { Operations::Liability.count }.by(1)
 
       expect(response).to be_successful
     end

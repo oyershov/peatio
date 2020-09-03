@@ -100,7 +100,6 @@ module API
           is_array: true,
           success: API::V2::Admin::Entities::Currency
         params do
-          use :currency
           use :currency_type
           use :pagination
           optional :ordering,
@@ -110,6 +109,15 @@ module API
           optional :order_by,
                    default: 'position',
                    desc: 'Name of the field, which result will be ordered by.'
+          optional :deposit_enabled,
+                   type: { value: Boolean, message: 'admin.currency.non_boolean_deposit_enabled' },
+                   desc: -> { API::V2::Admin::Entities::Currency.documentation[:deposit_enabled][:desc] }
+          optional :withdrawal_enabled,
+                   type: { value: Boolean, message: 'admin.currency.non_boolean_withdrawal_enabled' },
+                   desc: -> { API::V2::Admin::Entities::Currency.documentation[:withdrawal_enabled][:desc] }
+          optional :visible,
+                   type: { value: Boolean, message: 'admin.currency.non_boolean_visible' },
+                   desc: -> { API::V2::Admin::Entities::Currency.documentation[:visible][:desc] }
         end
         get '/currencies' do
           admin_authorize! :read, Currency
