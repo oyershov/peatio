@@ -112,7 +112,12 @@ module API
         get '/currencies' do
           admin_authorize! :read, Currency
 
-          search = Currency.ransack(type_eq: params[:type])
+          ransack_params = Helpers::RansackBuilder.new(params)
+            .eq(:type, :deposit_enabled, :withdrawal_enabled, :visible)
+            .with_daterange
+            .build
+
+          search = Currency.ransack(ransack_params)
           search.sorts = "#{params[:order_by]} #{params[:ordering]}"
 
           present paginate(search.result), with: API::V2::Admin::Entities::Currency
