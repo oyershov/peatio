@@ -94,7 +94,7 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.dig(0, :code)).to eq 'usd'
     end
 
-    it 'list of deposit_enabled currencies' do
+    it 'list of deposit enabled currencies' do
       api_get '/api/v2/admin/currencies', params: { deposit_enabled: true }, token: token
       expect(response).to be_successful
 
@@ -102,12 +102,28 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.size).to eq Currency.deposit_enabled.count
     end
 
-    it 'list of withdrawal_enabled currencies' do
+    it 'list of deposit disabled currencies' do
+      api_get '/api/v2/admin/currencies', params: { deposit_enabled: false }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.where(deposit_enabled: false).count
+    end
+
+    it 'list of withdrawal enabled currencies' do
       api_get '/api/v2/admin/currencies', params: { withdrawal_enabled: true }, token: token
       expect(response).to be_successful
 
       result = JSON.parse(response.body)
       expect(result.size).to eq Currency.withdrawal_enabled.count
+    end
+
+    it 'list of withdrawal disabled currencies' do
+      api_get '/api/v2/admin/currencies', params: { withdrawal_enabled: false }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.where(withdrawal_enabled: false).count
     end
 
     it 'list of visible currencies' do
@@ -118,12 +134,28 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.size).to eq Currency.visible.count
     end
 
+    it 'list of not visible currencies' do
+      api_get '/api/v2/admin/currencies', params: { visible: false }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.where(visible: false).count
+    end
+
     it 'list of visible coins' do
       api_get '/api/v2/admin/currencies', params: { visible: true, type: 'coin' }, token: token
       expect(response).to be_successful
 
       result = JSON.parse(response.body)
       expect(result.size).to eq Currency.coins.select { |c| c['visible'] == true }.count
+    end
+
+    it 'list of not visible coins' do
+      api_get '/api/v2/admin/currencies', params: { visible: false, type: 'coin' }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.coins.select { |c| c['visible'] == false }.count
     end
 
     it 'returns error in case of invalid type' do

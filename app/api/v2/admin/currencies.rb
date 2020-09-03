@@ -100,6 +100,7 @@ module API
           is_array: true,
           success: API::V2::Admin::Entities::Currency
         params do
+          use :currency
           use :currency_type
           use :pagination
           optional :ordering,
