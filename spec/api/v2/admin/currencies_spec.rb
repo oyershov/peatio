@@ -94,6 +94,38 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(result.dig(0, :code)).to eq 'usd'
     end
 
+    it 'list of deposit_enabled currencies' do
+      api_get '/api/v2/admin/currencies', params: { deposit_enabled: true }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.deposit_enabled.count
+    end
+
+    it 'list of withdrawal_enabled currencies' do
+      api_get '/api/v2/admin/currencies', params: { withdrawal_enabled: true }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.withdrawal_enabled.count
+    end
+
+    it 'list of visible currencies' do
+      api_get '/api/v2/admin/currencies', params: { visible: true }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.visible.count
+    end
+
+    it 'list of visible coins' do
+      api_get '/api/v2/admin/currencies', params: { visible: true, type: 'coin' }, token: token
+      expect(response).to be_successful
+
+      result = JSON.parse(response.body)
+      expect(result.size).to eq Currency.coins.select { |c| c['visible'] == true }.count
+    end
+
     it 'returns error in case of invalid type' do
       api_get '/api/v2/admin/currencies', params: { type: 'invalid' }, token: token
       expect(response).to have_http_status 422
