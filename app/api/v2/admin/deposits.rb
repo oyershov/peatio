@@ -136,7 +136,7 @@ module API
           end
         end
 
-        desc 'Returns deposit address for account you want to deposit to by currency.',
+        desc 'Returns deposit address for account you want to deposit to by currency and uid.',
           success: API::V2::Admin::Entities::Deposit
         params do
           requires :uid,
@@ -154,18 +154,20 @@ module API
                     desc: 'Address format legacy/cash'
           end
         end
-        get '/deposit_address' do
-          admin_authorize! :read, Deposit
+        post '/deposit_address' do
+          admin_authorize! :create, Deposit
 
           member   = Member.find_by!(uid: params[:uid])
           currency = Currency.find_by!(id: params[:currency_id])
 
-          unless currency.deposit_enabled?
-            error!({ errors: ['admin.deposit.deposit_disabled'] }, 422)
+          if currency.deposit_enabled
+            payment_address = member.get_account(currency).payment_address
+            present payment_address, with: API::V2::Entities::PaymentAddress, address_format: params[:address_format]
+            status 201
+          else
+            body errors: ["admin.deposit.deposit_disabled"]
+            status 422
           end
-
-          payment_address = member.get_account(currency).payment_address
-          present payment_address, with: API::V2::Entities::PaymentAddress, address_format: params[:address_format]
         end
       end
     end

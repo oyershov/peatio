@@ -234,24 +234,26 @@ describe API::V2::Admin::Deposits, type: :request do
     end
   end
 
-  describe 'GET /api/v2/admin/deposit_address' do
+  describe 'POST /api/v2/admin/deposit_address' do
+    let(:url) { '/api/v2/admin/deposit_address' }
+
     context 'failed' do
       let(:currency) { :eth }
 
       it 'validates currency with address_format param' do
-        api_get "/api/v2/admin/deposit_address", params: { currency: 'abc', uid: '' }, token: token
+        api_post url, params: { currency: 'abc', uid: '' }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('admin.deposit.user_doesnt_exist')
       end
 
       it 'validates currency' do
-        api_get "/api/v2/admin/deposit_address", params: { currency: 'dildocoin', uid: level_3_member.uid }, token: token
+        api_post url, params: { currency: 'dildocoin', uid: level_3_member.uid }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('admin.deposit.currency_doesnt_exist')
       end
 
       it 'validates currency address format' do
-        api_get "/api/v2/admin/deposit_address", params: { currency: 'eth', uid: level_3_member.uid, address_format: 'cash' }, token: token
+        api_post url, params: { currency: 'eth', uid: level_3_member.uid, address_format: 'cash' }, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('admin.deposit.doesnt_support_cash_address_format')
       end
@@ -263,13 +265,13 @@ describe API::V2::Admin::Deposits, type: :request do
         before { level_3_member.get_account(:eth).payment_address.update!(address: '2N2wNXrdo4oEngp498XGnGCbru29MycHogR') }
 
         it 'expose data about eth address' do
-          api_get "/api/v2/admin/deposit_address", params: { currency: currency, uid: level_3_member.uid}, token: token
+          api_post url, params: { currency: currency, uid: level_3_member.uid}, token: token
           expect(response.body).to eq '{"currency":"eth","address":"2n2wnxrdo4oengp498xgngcbru29mychogr","state":"active"}'
         end
 
         it 'pending user address state' do
           level_3_member.get_account(:eth).payment_address.update!(address: nil)
-          api_get "/api/v2/admin/deposit_address", params: { currency: currency, uid: level_3_member.uid}, token: token
+          api_post url, params: { currency: currency, uid: level_3_member.uid}, token: token
           expect(response.body).to eq '{"currency":"eth","address":null,"state":"pending"}'
         end
       end
@@ -281,7 +283,7 @@ describe API::V2::Admin::Deposits, type: :request do
       before { Currency.find(currency).update!(deposit_enabled: false) }
 
       it 'returns error' do
-        api_get "/api/v2/admin/deposit_address", params: { currency: currency, uid: level_3_member.uid}, token: token
+        api_post url, params: { currency: currency, uid: level_3_member.uid}, token: token
         expect(response).to have_http_status 422
         expect(response).to include_api_error('admin.deposit.deposit_disabled')
       end
