@@ -173,7 +173,7 @@ describe API::V2::Admin::Currencies, type: :request do
       expect(response).to be_successful
 
       result = JSON.parse(response.body)
-      expect(result.size).to eq Currency.coins.select { |c| c['visible'] == false }.count
+      expect(result.size).to eq Currency.coins.where(visible: false).count
     end
 
     it 'returns error in case of invalid type' do
