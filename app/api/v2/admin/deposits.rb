@@ -159,9 +159,14 @@ module API
 
           member   = Member.find_by!(uid: params[:uid])
           currency = Currency.find_by!(id: params[:currency_id])
+          wallet   = Wallet.deposit_wallet(currency.id)
+
+          unless wallet.present?
+            error!({ errors: ['admin.deposit.wallet_not_found'] }, 422)
+          end
 
           if currency.deposit_enabled
-            payment_address = member.get_account(currency).payment_address
+            payment_address = member.payment_address(wallet.id)
             present payment_address, with: API::V2::Entities::PaymentAddress, address_format: params[:address_format]
             status 201
           else

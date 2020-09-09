@@ -262,17 +262,18 @@ describe API::V2::Admin::Deposits, type: :request do
     context 'successful' do
       context 'eth address' do
         let(:currency) { :eth }
-        before { level_3_member.get_account(:eth).payment_address.update!(address: '2N2wNXrdo4oEngp498XGnGCbru29MycHogR') }
+        let(:wallet) { Wallet.joins(:currencies).find_by(currencies: { id: currency }) }
+        before { level_3_member.payment_address(wallet.id).update!(address: '2N2wNXrdo4oEngp498XGnGCbru29MycHogR') }
 
         it 'expose data about eth address' do
           api_post url, params: { currency: currency, uid: level_3_member.uid}, token: token
-          expect(response.body).to eq '{"currency":"eth","address":"2n2wnxrdo4oengp498xgngcbru29mychogr","state":"active"}'
+          expect(response.body).to eq '{"currencies":["eth"],"address":"2n2wnxrdo4oengp498xgngcbru29mychogr","state":"active"}'
         end
 
         it 'pending user address state' do
-          level_3_member.get_account(:eth).payment_address.update!(address: nil)
+          level_3_member.payment_address(wallet.id).update!(address: nil)
           api_post url, params: { currency: currency, uid: level_3_member.uid}, token: token
-          expect(response.body).to eq '{"currency":"eth","address":null,"state":"pending"}'
+          expect(response.body).to eq '{"currencies":["eth"],"address":null,"state":"pending"}'
         end
       end
     end
