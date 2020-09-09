@@ -155,7 +155,7 @@ module API
           end
         end
         post '/deposit_address' do
-          admin_authorize! :create, PaymentAddress
+          authorize! :create, PaymentAddress
 
           member   = Member.find_by!(uid: params[:uid])
           currency = Currency.find_by!(id: params[:currency_id])
